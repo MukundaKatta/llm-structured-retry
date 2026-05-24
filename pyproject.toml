@@ -3,9 +3,9 @@ requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
-name = "token-budget-py"
+name = "llm-structured-retry"
 version = "0.1.0"
-description = "Thread-safe shared token + USD budget for concurrent LLM tasks. Raises BudgetExceeded on push past cap. Reserve/commit two-phase API for fan-out workloads. Zero runtime deps."
+description = "Retry LLM calls on validation failure by injecting the error back as a follow-up message. Sync and async support. Zero runtime deps."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -13,12 +13,12 @@ authors = [{ name = "Mukunda Rao Katta", email = "mukunda.vjcs6@gmail.com" }]
 keywords = [
   "llm",
   "ai",
-  "budget",
-  "cost",
-  "concurrency",
-  "fan-out",
+  "retry",
+  "validation",
+  "structured-output",
   "agents",
-  "rate-limit",
+  "anthropic",
+  "openai",
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -37,16 +37,15 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.4"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4"]
 
 [project.urls]
-Homepage = "https://github.com/MukundaKatta/token-budget-py"
-Issues = "https://github.com/MukundaKatta/token-budget-py/issues"
-Source = "https://github.com/MukundaKatta/token-budget-py"
-"Rust sibling" = "https://crates.io/crates/token-budget-pool"
+Homepage = "https://github.com/MukundaKatta/llm-structured-retry"
+Issues = "https://github.com/MukundaKatta/llm-structured-retry/issues"
+Source = "https://github.com/MukundaKatta/llm-structured-retry"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/token_budget"]
+packages = ["src/llm_structured_retry"]
 
 [tool.hatch.build.targets.sdist]
 include = ["/src", "/tests", "/README.md", "/LICENSE"]
@@ -54,6 +53,7 @@ include = ["/src", "/tests", "/README.md", "/LICENSE"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+asyncio_mode = "auto"
 
 [tool.ruff]
 target-version = "py310"
