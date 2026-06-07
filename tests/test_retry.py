@@ -428,3 +428,46 @@ async def test_async_kwargs_forwarded():
     sr = StructuredRetry(max_retries=3, validate_fn=require_hello)
     await sr.retry_call_async(llm_fn, list(MESSAGES), stream=False, max_tokens=100)
     assert received_kwargs[0] == {"stream": False, "max_tokens": 100}
+
+
+# ---------------------------------------------------------------------------
+# 19. JSON validation — the headline use case (bad JSON repaired on retry)
+# ---------------------------------------------------------------------------
+
+
+def test_require_json_repairs_on_retry():
+    sr = StructuredRetry(max_retries=3, validate_fn=require_json)
+    result = sr.retry_call(make_llm(["not json", '{"name": "ok"}']), list(MESSAGES))
+    assert result.succeeded is True
+    assert result.attempts == 2
+    assert len(result.errors) == 1
+    assert "not valid JSON" in result.errors[0]
+    assert result.content == '{"name": "ok"}'
+
+
+def test_require_json_first_try_valid():
+    sr = StructuredRetry(max_retries=2, validate_fn=require_json)
+    result = sr.retry_call(make_llm(['{"a": 1}']), list(MESSAGES))
+    assert result.succeeded is True
+    assert result.attempts == 1
+    assert result.errors == []
+
+
+# ---------------------------------------------------------------------------
+# 20. The invalid assistant reply is injected into the next attempt's history
+# ---------------------------------------------------------------------------
+
+
+def test_invalid_assistant_reply_injected_into_history():
+    captured: list[list[dict]] = []
+
+    def llm_fn(messages, **kwargs):
+        captured.append([dict(m) for m in messages])
+        return "bad reply" if len(captured) == 1 else "hello"
+
+    sr = StructuredRetry(max_retries=3, validate_fn=require_hello)
+    result = sr.retry_call(llm_fn, list(MESSAGES))
+    assert result.succeeded is True
+    # The second call must contain the first (invalid) reply as an assistant turn.
+    second_call = captured[1]
+    assert {"role": "assistant", "content": "bad reply"} in second_call

@@ -8,7 +8,6 @@ fix its own output.
 
 from __future__ import annotations
 
-import asyncio
 import functools
 from collections.abc import Callable
 from typing import Any
@@ -105,9 +104,7 @@ class StructuredRetry:
 
             try:
                 self.validate_fn(content)
-                return RetryResult(
-                    content=content, attempts=attempt, succeeded=True, errors=errors
-                )
+                return RetryResult(content=content, attempts=attempt, succeeded=True, errors=errors)
             except ValidationError as exc:
                 error_msg = str(exc)
                 errors.append(error_msg)
@@ -147,9 +144,7 @@ class StructuredRetry:
 
             try:
                 self.validate_fn(content)
-                return RetryResult(
-                    content=content, attempts=attempt, succeeded=True, errors=errors
-                )
+                return RetryResult(content=content, attempts=attempt, succeeded=True, errors=errors)
             except ValidationError as exc:
                 error_msg = str(exc)
                 errors.append(error_msg)
@@ -232,6 +227,3 @@ __all__ = [
     "RetryResult",
     "StructuredRetry",
 ]
-
-# Re-export asyncio for convenience — not part of the public API.
-_asyncio = asyncio
